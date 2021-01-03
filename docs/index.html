@@ -8,7 +8,7 @@
   <meta charset="UTF-8">
   <link rel="stylesheet" href="//unpkg.com/docsify/themes/vue.css">
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.css">
-  <title>从零开始XXX</title>
+  <title>从零开始学习Spring</title>
 </head>
 <body>
   <div id="app"></div>
@@ -21,7 +21,7 @@
         '/.*/_sidebar.md': '/_sidebar.md'
       },
       auto2top: true,
-      name: 'Re0-XXX',
+      name: 'Re0-Spring',
       markdown: {
         renderer: {
           code: function(code, lang) {
@@ -39,6 +39,10 @@
                 diagram.drawSVG('sequence', {theme: 'simple'});
               })();
               return '<div id="sequence"></div>';
+            } else if (lang === "dot") {
+              return (
+                 '<div class="viz">'+ Viz(code, "SVG")+'</div>'
+              );
             } else if (lang === "mermaid") {
               return (
                 '<div class="mermaid">' + mermaid.render(lang, code) + "</div>"
@@ -99,6 +103,7 @@
   <script src="//cdnjs.cloudflare.com/ajax/libs/js-sequence-diagrams/1.0.6/sequence-diagram-min.js"></script>
   <!-- mermaid erquirements -->
   <script src="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script src="//cdn.bootcss.com/viz.js/1.8.0/viz.js"></script>
   <script type="text/javascript">mermaid.initialize({ startOnLoad: false });</script>
 </body>
 </html>

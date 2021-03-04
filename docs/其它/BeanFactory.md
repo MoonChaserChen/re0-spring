@@ -59,7 +59,7 @@ BeanFactory通过name获取Bean只能有一个，但是通过Bean类型获取的
 | boolean containsBeanDefinition(String beanName); | 通过name判断BeanDefinition是否存在 |
 | int getBeanDefinitionCount(); | 获取BeanDefinition总数 |
 | String[] getBeanDefinitionNames(); | 获取所有的Bean name |
-| String[] getBeanNamesForType(ResolvableType type); | 通过类型获取所有的BeanDefinition，包括子类。通常用getBeanNamesForType(type, true, true)实现 |
+| String[] getBeanNamesForType(ResolvableType type); | 通过类型获取所有的Bean name，包括子类。通常用getBeanNamesForType(type, true, true)实现 |
 | String[] getBeanNamesForType(ResolvableType type, boolean includeNonSingletons, boolean allowEagerInit); | |
 | String[] getBeanNamesForType(@Nullable Class&lt;?> type); | |
 | String[] getBeanNamesForType(@Nullable Class&lt;?> type, boolean includeNonSingletons, boolean allowEagerInit); | |
@@ -69,3 +69,56 @@ BeanFactory通过name获取Bean只能有一个，但是通过Bean类型获取的
 | Map<String, Object> getBeansWithAnnotation(Class<? extends Annotation> annotationType) throws BeansException; | 获取带指定注解的Bean |
 | &lt;A extends Annotation> A findAnnotationOnBean(String beanName, Class&lt;A> annotationType) throws NoSuchBeanDefinitionException; | 获取bean上的注解 |
 
+## HierarchicalBeanFactory
+BeanFactory规定了：当前工厂查找不到Bean时，会从其父工厂查找。HierarchicalBeanFactory定义了获取父BeanFactory方法，同时可从当前工厂判断是否包含Bean的方法：
+
+| 方法 | 说明 |
+| ---- | ---- |
+| BeanFactory getParentBeanFactory(); | 获取父工厂 |
+| boolean containsLocalBean(String name); | 当前工厂是否包含Bean |
+
+这里有点需要理解的是，为什么这个HierarchicalBeanFactory规范只定义了获取父工厂方法，而设置父工厂方法却要放到ConfigurableBeanFactory中呢？
+> 感觉上是一个接口规范的强化，因为ConfigurableBeanFactory是继承至HierarchicalBeanFactory的。HierarchicalBeanFactory只需要规定有一个父容器就行了，即get方法。
+
+## ConfigurableBeanFactory
+继承至HierarchicalBeanFactory，提供了一些配置BeanFactory的方法。
+
+| 方法 | 说明 |
+| void setParentBeanFactory(BeanFactory parentBeanFactory) throws IllegalStateException; | 设置父工厂，只能设置一次，不能改变 |
+| void setBeanClassLoader(@Nullable ClassLoader beanClassLoader); | 设置Bean的类加载器 |
+| ClassLoader getBeanClassLoader(); | |
+| void setTempClassLoader(@Nullable ClassLoader tempClassLoader); | 临时Bean的类加载器，主要用于LTW延时加载 |
+| ClassLoader getTempClassLoader(); | |
+| void setCacheBeanMetadata(boolean cacheBeanMetadata); | 设置工厂里的BeanDefinition是否进行缓存，默认使用缓存，若不使用缓存则可以动态刷新Bean（比如动态修改xml中的Bean配置） |
+| boolean isCacheBeanMetadata(); | |
+| void setBeanExpressionResolver(@Nullable BeanExpressionResolver resolver); | 设置Bean配置中一些#{...}等表达式的处理器 |
+| BeanExpressionResolver getBeanExpressionResolver(); | |
+| void setConversionService(@Nullable ConversionService conversionService); | 设置ConversionService，ConversionService好像用于属性值转换 |
+| ConversionService getConversionService(); | |
+| void addPropertyEditorRegistrar(PropertyEditorRegistrar registrar); | 设置PropertyEditor相关 |
+| void registerCustomEditor(Class<?> requiredType, Class<? extends PropertyEditor> propertyEditorClass); | |
+| void copyRegisteredEditorsTo(PropertyEditorRegistry registry); | |
+| void setTypeConverter(TypeConverter typeConverter); | 设置TypeConverter相关，TypeConverter优先于PropertyEditor |
+| TypeConverter getTypeConverter(); | |
+| void addEmbeddedValueResolver(StringValueResolver valueResolver); | 添加StringValueResolver，用于处理注解上的属性等 |
+| boolean hasEmbeddedValueResolver(); | |
+| String resolveEmbeddedValue(String value); | |
+| void addBeanPostProcessor(BeanPostProcessor beanPostProcessor); | BeanPostProcessor相关 |
+| int getBeanPostProcessorCount(); | |
+| void registerScope(String scopeName, Scope scope); | 对ConfigurableBeanFactory的两个标准的Scope（单例、多例）进行扩展 |
+| String[] getRegisteredScopeNames(); | 获取注册的Scope名称，不包括"singleton"、"prototype" |
+| Scope getRegisteredScope(String scopeName); | 获取Scope |
+| AccessControlContext getAccessControlContext(); | 工厂里的安全访问控制上下文 |
+| void copyConfigurationFrom(ConfigurableBeanFactory otherFactory); | 从另一个ConfigurableBeanFactory复制，只复制工厂配置相关的，其它的比如BeanDefinition信息不会复制 |
+| void registerAlias(String beanName, String alias) throws BeanDefinitionStoreException; | beanName的别名相关 |
+| void resolveAliases(StringValueResolver valueResolver); | |
+| BeanDefinition getMergedBeanDefinition(String beanName) throws NoSuchBeanDefinitionException; | 根据beanName获取BeanDefinition |
+| boolean isFactoryBean(String name) throws NoSuchBeanDefinitionException; | 根据beanName判断是否是FactoryBean |
+| void setCurrentlyInCreation(String beanName, boolean inCreation); | 设置当前Bean正在创建 |
+| boolean isCurrentlyInCreation(String beanName); | 判断Bean是否正在创建 |
+| void registerDependentBean(String beanName, String dependentBeanName); | 设置bean的依赖关系 |
+| String[] getDependentBeans(String beanName); | 获取依赖指定beanName的所有其它beanName |
+| String[] getDependenciesForBean(String beanName); | 获取指定beanName依赖的其它beanName |
+| void destroyBean(String beanName, Object beanInstance); | 销毁bean相关 |
+| void destroyScopedBean(String beanName); | |
+| void destroySingletons(); | |
